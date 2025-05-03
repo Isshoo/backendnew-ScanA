@@ -16,7 +16,13 @@ from src.database.api.controllers.user_controller import user_bp
 
 def create_app():
     app = Flask(__name__)
-    CORS(app)
+    CORS(app, resources={
+        r"/api/*": {
+            "origins": ["*"],
+            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+            "allow_headers": ["Content-Type", "Authorization"]
+        }
+    })
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(course_bp)

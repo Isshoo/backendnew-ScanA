@@ -1,12 +1,32 @@
 from flask import Blueprint, request
 from src.database.api.services import user_service
 from src.utils.jwt_helper import admin_required, login_required
+from src.database.config import SessionLocal
+from src.database.models import User
 
-user_bp = Blueprint('user', __name__, url_prefix='/api/users')
+user_bp = Blueprint('user', __name__, url_prefix='/api/user')
+
+
+@user_bp.route('/profile', methods=['GET'])
+@login_required
+def get_profile():
+    user = request.current_user  # Diambil dari JWT token via login_required decorator
+
+    if not user:
+        return {"message": "User not found"}, 404
+
+    return {
+        "id": user.id,
+        "username": user.username,
+        "name": user.name,
+        "email": user.email,
+        "phone": user.phone,
+        "role": user.role.value
+    }, 200
 
 
 @user_bp.route('/', methods=['GET'])
-@login_required
+@admin_required
 def list_users():
     users = user_service.get_users()
     user_list = [{
