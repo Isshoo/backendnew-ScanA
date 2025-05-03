@@ -45,3 +45,50 @@ def get_attendance_by_meeting(meeting_id):
     } for a in attendances]
 
     return {"attendances": attendance_list}, 200
+
+
+@attendance_bp.route('/scan', methods=['POST'])
+@admin_required  # atau login_required, tergantung siapa yang scan
+def scan_hand_for_attendance():
+    if 'file' not in request.files:
+        return {"message": "No file uploaded."}, 400
+
+    file = request.files['file']
+    meeting_id = request.form.get('meeting_id')
+    scan_type = request.form.get('scan_type')  # "in" atau "out"
+
+    if not all([meeting_id, scan_type]):
+        return {"message": "Meeting ID and scan type are required."}, 400
+
+    # Save uploaded file temporarily
+    temp_path = f"/tmp/{file.filename}"
+    file.save(temp_path)
+
+    # Import predict function
+    from src.utils.hand_recognition import predict_student_id
+
+    # Predict student_id using the CNN model
+    student_id = predict_student_id(temp_path)
+
+    if not student_id:
+        return {"message": "Hand not recognized."}, 400
+
+    # Now reuse your existing attendance marking service
+    attendance, error = attendance_service.mark_attendance(
+        meeting_id=int(meeting_id),
+        student_id=student_id,
+        scan_type=scan_type
+    )
+
+    if error:
+        return {"message": error}, 400
+
+    return {
+        "message": "Attendance marked successfully.",
+        "attendance": {
+            "id": attendance.id,
+            "check_in_time": attendance.check_in_time.strftime('%Y-%m-%d %H:%M:%S') if attendance.check_in_time else None,
+            "check_out_time": attendance.check_out_time.strftime('%Y-%m-%d %H:%M:%S') if attendance.check_out_time else None,
+            "status": attendance.status
+        }
+    }, 200

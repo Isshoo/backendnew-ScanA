@@ -23,6 +23,7 @@ class User(Base):
     phone = Column(String, nullable=True)
     hand_left_path = Column(String, nullable=True)
     hand_right_path = Column(String, nullable=True)
+    hand_scan_class_index = Column(Integer, unique=True, nullable=True)
     role = Column(Enum(RoleEnum), default=RoleEnum.user)
 
     class_students = relationship("ClassStudent", back_populates="student")
