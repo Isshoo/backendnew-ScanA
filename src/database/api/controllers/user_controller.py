@@ -38,3 +38,26 @@ def list_users():
     } for u in users]
 
     return {"users": user_list}, 200
+
+
+@user_bp.route('/<int:user_id>', methods=['GET'])
+@admin_required
+def get_user(user_id):
+    user = user_service.get_user(user_id)
+    if not user:
+        return {"message": "User not found"}, 404
+
+    user_dict = {
+        "id": user.id,
+        "nim": user.nim,
+        "name": user.name,
+        "email": user.email,
+        "phone": user.phone,
+        "role": user.role.value if hasattr(user.role, 'value') else user.role,
+        "username": user.username,
+        "password": f"{user.name.split()[0]}{user.nim[-5:]}"
+    }
+
+    return {"user": user_dict}, 200
+
+

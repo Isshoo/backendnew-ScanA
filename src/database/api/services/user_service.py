@@ -8,3 +8,9 @@ def get_users():
         User.role == 'user').order_by(User.nim.asc()).all()
     session.close()
     return users
+
+def get_user(user_id):
+    session = SessionLocal()
+    user = session.query(User).filter(User.id == user_id).first()
+    session.close()
+    return user
