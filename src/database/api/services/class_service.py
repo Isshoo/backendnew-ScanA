@@ -1,5 +1,5 @@
 from src.database.config import SessionLocal
-from src.database.models import Class, Course
+from src.database.models import Class, Course, ClassStudent, Meeting
 import string
 
 
@@ -24,6 +24,7 @@ def create_class(course_id):
         new_class = Class(name=class_name, course_id=course_id)
         session.add(new_class)
         session.commit()
+        session.refresh(new_class)  # Refresh to get the ID
         return new_class, None
     except Exception as e:
         session.rollback()
@@ -46,7 +47,12 @@ def get_all_classes():
 def get_classes_by_course(course_id):
     session = SessionLocal()
     try:
-        return session.query(Class).filter_by(course_id=course_id).all()
+        classes = session.query(Class).filter_by(course_id=course_id).all()
+        # Get counts for each class
+        for class_obj in classes:
+            class_obj.student_count = session.query(ClassStudent).filter_by(class_id=class_obj.id).count()
+            class_obj.meeting_count = session.query(Meeting).filter_by(class_id=class_obj.id).count()
+        return classes
     except Exception as e:
         print(f"Error in get_classes_by_course: {str(e)}")
         return []
