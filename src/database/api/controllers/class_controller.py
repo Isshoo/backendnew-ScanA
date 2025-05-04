@@ -25,6 +25,31 @@ def create_class():
     }, 201
 
 
+@class_bp.route('/', methods=['GET'])
+@login_required
+def get_all_classes():
+    try:
+        classes = class_service.get_all_classes()
+        class_list = [{
+            "id": c.id,
+            "name": c.name,
+            "course_id": c.course_id
+        } for c in classes]
+
+        return {
+            "status": "success",
+            "data": {
+                "classes": class_list
+            }
+        }, 200
+    except Exception as e:
+        print(f"Error in get_all_classes endpoint: {str(e)}")
+        return {
+            "status": "error",
+            "message": "Internal server error"
+        }, 500
+
+
 @class_bp.route('/by-course/<int:course_id>', methods=['GET'])
 @login_required
 def get_classes_by_course(course_id):
