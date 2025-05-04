@@ -45,3 +45,22 @@ def get_meetings_by_class(class_id):
     } for m in meetings]
 
     return {"meetings": meeting_list}, 200
+
+
+@meeting_bp.route('/all', methods=['GET'])
+@login_required
+def get_all_meetings():
+    try:
+        meetings = meeting_service.get_all_meetings()
+        return {
+            "status": "success",
+            "data": {
+                "meetings": meetings
+            }
+        }, 200
+    except Exception as e:
+        print(f"Error in get_all_meetings endpoint: {str(e)}")
+        return {
+            "status": "error",
+            "message": "Internal server error"
+        }, 500
